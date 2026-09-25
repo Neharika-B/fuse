@@ -2,7 +2,7 @@ module metrics
   use nrtype
   implicit none
   private
-  public :: get_KGE, get_KGEp, get_NSE, get_MAE, get_RMSE
+  public :: get_KGE, get_KGEp, get_composite_KGE, get_NSE, get_MAE, get_RMSE
 
 contains
 
@@ -241,6 +241,26 @@ contains
     end if
     
   end function get_RMSE
+
+
+  ! Compute composite KGE: mean of KGE on raw flows and KGE on inverse flows
+  ! (ported from the FUSE_KGECOMP branch of CyrilThebault/fuse, commit e6e23a4)
+  function get_composite_KGE(obs, sim) result(composite_kge)
+
+    real(wp), intent(in) :: obs(:), sim(:)           ! observed and simulated streamflow time series
+    real(wp)             :: composite_kge            ! composite KGE
+    real(wp)             :: kge1, kge2               ! KGE values for different transformations
+
+    ! Compute KGE for transfo = 1 (raw flows, emphasis on high flows)
+    kge1 = get_KGE(obs, sim, "1")
+
+    ! Compute KGE for transfo = -1 (inverse flows, emphasis on low flows)
+    kge2 = get_KGE(obs, sim, "-1")
+
+    ! Compute composite KGE
+    composite_kge = (kge1 + kge2) / 2.0_wp
+
+  end function get_composite_KGE
 
 
 ! ---------------------------------------------------------------------------------------

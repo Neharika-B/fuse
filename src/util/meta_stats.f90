@@ -33,6 +33,7 @@ I=I+1; XNAME(I)='log_rmse   '; XDESC(I)='root-mean-squared-error of LOG flow    
 I=I+1; XNAME(I)='nash_sutt  '; XDESC(I)='Nash-Sutcliffe score                               '; XUNIT(I)='-            '
 I=I+1; XNAME(I)='kge        '; XDESC(I)='Kling-Gupta Efficiency score                       '; XUNIT(I)='-            '
 I=I+1; XNAME(I)='kgep       '; XDESC(I)='Kling-Gupta Efficiency prime score                 '; XUNIT(I)='-            '
+I=I+1; XNAME(I)='kgecomp    '; XDESC(I)='Kling-Gupta Efficiency composite score             '; XUNIT(I)='-            '
 I=I+1; XNAME(I)='mae        '; XDESC(I)='mean absolute error                                '; XUNIT(I)='mm/day       '
 I=I+1; XNAME(I)='metric_val '; XDESC(I)='value of the metric chosen as objective function   '; XUNIT(I)='problem_depnt'
 ! attributes of model output

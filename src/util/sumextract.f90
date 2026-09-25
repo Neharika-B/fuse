@@ -39,6 +39,7 @@ IF (TRIM(STATNAME).EQ.'log_rmse')    XVAR = stats%LOG_RMSE
 IF (TRIM(STATNAME).EQ.'nash_sutt')   XVAR = stats%NASH_SUTT
 IF (TRIM(STATNAME).EQ.'kge')         XVAR = stats%KGE
 IF (TRIM(STATNAME).EQ.'kgep')        XVAR = stats%KGEP
+IF (TRIM(STATNAME).EQ.'kgecomp')     XVAR = stats%KGECOMP
 IF (TRIM(STATNAME).EQ.'mae')         XVAR = stats%MAE
 IF (TRIM(STATNAME).EQ.'metric_val')  XVAR = stats%METRIC_VAL
 ! extract numerix stats

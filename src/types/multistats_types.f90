@@ -23,6 +23,7 @@ MODULE multistats_types
   REAL(WP)                             :: NASH_SUTT     ! Nash-Sutcliffe score
   REAL(WP)                             :: KGE           ! Kling-Gupta Efficiency score
   REAL(WP)                             :: KGEP          ! Kling-Gupta Efficiency' score
+  REAL(WP)                             :: KGECOMP       ! Kling-Gupta Efficiency composite score
   REAL(WP)                             :: MAE           ! Mean absolute error
   REAL(WP)                             :: METRIC_VAL    ! value of the metric chosen as objective function
  

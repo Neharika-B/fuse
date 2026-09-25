@@ -149,6 +149,7 @@ contains
     work%run%stats%NASH_SUTT=-9999
     work%run%stats%RAW_RMSE=-9999
     work%run%stats%KGE=-9999
+    work%run%stats%KGECOMP=-9999
     work%run%stats%METRIC_VAL=-9999
   
   ELSE
@@ -221,14 +222,19 @@ contains
     
     ! Compute MAE using the metrics module
     work%run%stats%MAE = get_MAE(QOBS_AVAIL, QSIM_AVAIL, '1')         ! No transformation
+
+    ! Compute composite KGE using the metrics module
+    work%run%stats%KGECOMP = get_composite_KGE(QOBS_AVAIL, QSIM_AVAIL) ! Transformations 1 and -1
     
     ! Savethe metric chosen as objective function
+    ! Note: the objective function uses the transformation (TRANSFO) requested in the control file
     select case(METRIC)
-      case ("KGE");  work%run%stats%METRIC_VAL = work%run%stats%KGE
-      case ("KGEP"); work%run%stats%METRIC_VAL = work%run%stats%KGEP
-      case ("NSE");  work%run%stats%METRIC_VAL = work%run%stats%NASH_SUTT
-      case ("RMSE"); work%run%stats%METRIC_VAL = work%run%stats%RAW_RMSE
-      case ("MAE");  work%run%stats%METRIC_VAL = work%run%stats%MAE
+      case ("KGE");     work%run%stats%METRIC_VAL = get_KGE(QOBS_AVAIL, QSIM_AVAIL, TRANSFO)
+      case ("KGEP");    work%run%stats%METRIC_VAL = get_KGEP(QOBS_AVAIL, QSIM_AVAIL, TRANSFO)
+      case ("NSE");     work%run%stats%METRIC_VAL = get_NSE(QOBS_AVAIL, QSIM_AVAIL, TRANSFO)
+      case ("RMSE");    work%run%stats%METRIC_VAL = get_RMSE(QOBS_AVAIL, QSIM_AVAIL, TRANSFO)
+      case ("MAE");     work%run%stats%METRIC_VAL = get_MAE(QOBS_AVAIL, QSIM_AVAIL, TRANSFO)
+      case ("KGECOMP"); work%run%stats%METRIC_VAL = work%run%stats%KGECOMP  ! uses fixed transformations 1 and -1
       case default
         message=trim(message)//'The requested metric is not available for calibration'
         ierr=10; return
@@ -247,6 +253,7 @@ contains
     PRINT *, 'NSE = ',          work%run%stats%NASH_SUTT
     PRINT *, 'KGE = ',          work%run%stats%KGE
     PRINT *, 'KGEP = ',         work%run%stats%KGEP
+    PRINT *, 'KGECOMP = ',      work%run%stats%KGECOMP
     PRINT *, 'MAE = ',          work%run%stats%MAE
     PRINT *, 'RAW_RMSE = ',     work%run%stats%RAW_RMSE
     PRINT *, 'LOG_RMSE = ',     work%run%stats%LOG_RMSE
