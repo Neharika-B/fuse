@@ -28,7 +28,10 @@ SELECT CASE(SMODL%iQPERC)
   M_FLUX%QPERC_12 = MPARAM%PERCRTE * (TSTATE%WATR_1/MPARAM%MAXWATR_1)**MPARAM%PERCEXP
  CASE(iopt_perc_lower) ! perc defined by moisture content in lower layer (SAC)
   ! (compute lower-zone percolation demand -- multiplier on maximum percolation, then percolation)
-  LZ_PD = 1._WP + MPARAM%SACPMLT*(1._WP - TSTATE%WATR_2/MPARAM%MAXWATR_2)**MPARAM%SACPEXP
+  ! the lower-zone deficit is bounded at zero: for the unlimited lower-layer options
+  ! (unlimfrc_2, unlimpow_2) WATR_2 can exceed MAXWATR_2, and a negative base raised
+  ! to a non-integer SACPEXP is NaN. Storage above MAXWATR_2 is treated as full.
+  LZ_PD = 1._WP + MPARAM%SACPMLT*MAX(0._WP, 1._WP - TSTATE%WATR_2/MPARAM%MAXWATR_2)**MPARAM%SACPEXP
   M_FLUX%QPERC_12 = DPARAM%QBSAT*LZ_PD * (TSTATE%FREE_1/DPARAM%MAXFREE_1)
   !print *, 'lz_pd = ', LZ_PD, MPARAM%SACPMLT, TSTATE%WATR_2/MPARAM%MAXWATR_2, MPARAM%SACPEXP
   !print *, 'qperc_12 = ', M_FLUX%QPERC_12, DPARAM%QBSAT, LZ_PD, TSTATE%FREE_1/DPARAM%MAXFREE_1
