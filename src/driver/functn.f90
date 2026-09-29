@@ -70,7 +70,7 @@ if (ierr/=0) stop trim(message)
 
 ! save objective function value: SCE is a minimization algorithm
 select case(metric)
- case ("KGE", "KGEP", "NSE", "KGECOMP"); FUNCTN = -METRIC_VAL
+ case ("KGE", "KGEP", "NSE", "KGECOMP", "KGECSI"); FUNCTN = -METRIC_VAL
  case ("MAE", "RMSE");        FUNCTN = METRIC_VAL
  case default
   STOP 'The requested metric is not available in metrics module'

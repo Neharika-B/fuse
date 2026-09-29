@@ -40,6 +40,11 @@ IF (TRIM(STATNAME).EQ.'nash_sutt')   XVAR = stats%NASH_SUTT
 IF (TRIM(STATNAME).EQ.'kge')         XVAR = stats%KGE
 IF (TRIM(STATNAME).EQ.'kgep')        XVAR = stats%KGEP
 IF (TRIM(STATNAME).EQ.'kgecomp')     XVAR = stats%KGECOMP
+IF (TRIM(STATNAME).EQ.'kgecsi')      XVAR = stats%KGECSI
+IF (TRIM(STATNAME).EQ.'csi')         XVAR = stats%CSI
+IF (TRIM(STATNAME).EQ.'kge_nonzero') XVAR = stats%KGE_NZ
+IF (TRIM(STATNAME).EQ.'f0')          XVAR = stats%F0
+IF (TRIM(STATNAME).EQ.'zero_thr')    XVAR = stats%ZERO_THR
 IF (TRIM(STATNAME).EQ.'mae')         XVAR = stats%MAE
 IF (TRIM(STATNAME).EQ.'metric_val')  XVAR = stats%METRIC_VAL
 ! extract numerix stats

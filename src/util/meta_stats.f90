@@ -34,6 +34,11 @@ I=I+1; XNAME(I)='nash_sutt  '; XDESC(I)='Nash-Sutcliffe score                   
 I=I+1; XNAME(I)='kge        '; XDESC(I)='Kling-Gupta Efficiency score                       '; XUNIT(I)='-            '
 I=I+1; XNAME(I)='kgep       '; XDESC(I)='Kling-Gupta Efficiency prime score                 '; XUNIT(I)='-            '
 I=I+1; XNAME(I)='kgecomp    '; XDESC(I)='Kling-Gupta Efficiency composite score             '; XUNIT(I)='-            '
+I=I+1; XNAME(I)='kgecsi     '; XDESC(I)='KGE-CSI score: f0*csi + (1-f0)*kge_nonzero         '; XUNIT(I)='-            '
+I=I+1; XNAME(I)='csi        '; XDESC(I)='critical success index for zero flow               '; XUNIT(I)='-            '
+I=I+1; XNAME(I)='kge_nonzero'; XDESC(I)='KGE on non-zero observed flows                     '; XUNIT(I)='-            '
+I=I+1; XNAME(I)='f0         '; XDESC(I)='fraction of zero-flow observations                 '; XUNIT(I)='-            '
+I=I+1; XNAME(I)='zero_thr   '; XDESC(I)='zero-flow threshold (mean positive obs / 1000)     '; XUNIT(I)='mm/day       '
 I=I+1; XNAME(I)='mae        '; XDESC(I)='mean absolute error                                '; XUNIT(I)='mm/day       '
 I=I+1; XNAME(I)='metric_val '; XDESC(I)='value of the metric chosen as objective function   '; XUNIT(I)='problem_depnt'
 ! attributes of model output

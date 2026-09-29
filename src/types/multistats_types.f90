@@ -24,6 +24,11 @@ MODULE multistats_types
   REAL(WP)                             :: KGE           ! Kling-Gupta Efficiency score
   REAL(WP)                             :: KGEP          ! Kling-Gupta Efficiency' score
   REAL(WP)                             :: KGECOMP       ! Kling-Gupta Efficiency composite score
+  REAL(WP)                             :: KGECSI        ! KGE-CSI score: F0*CSI + (1-F0)*KGE_NZ
+  REAL(WP)                             :: CSI           ! critical success index for zero flow (part of KGE-CSI)
+  REAL(WP)                             :: KGE_NZ        ! KGE on non-zero observed flows (part of KGE-CSI)
+  REAL(WP)                             :: F0            ! fraction of zero-flow observations (part of KGE-CSI)
+  REAL(WP)                             :: ZERO_THR      ! zero-flow threshold (part of KGE-CSI)
   REAL(WP)                             :: MAE           ! Mean absolute error
   REAL(WP)                             :: METRIC_VAL    ! value of the metric chosen as objective function
  

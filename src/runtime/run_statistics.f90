@@ -150,6 +150,11 @@ contains
     work%run%stats%RAW_RMSE=-9999
     work%run%stats%KGE=-9999
     work%run%stats%KGECOMP=-9999
+    work%run%stats%KGECSI=-9999
+    work%run%stats%CSI=-9999
+    work%run%stats%KGE_NZ=-9999
+    work%run%stats%F0=-9999
+    work%run%stats%ZERO_THR=-9999
     work%run%stats%METRIC_VAL=-9999
   
   ELSE
@@ -225,6 +230,11 @@ contains
 
     ! Compute composite KGE using the metrics module
     work%run%stats%KGECOMP = get_composite_KGE(QOBS_AVAIL, QSIM_AVAIL) ! Transformations 1 and -1
+
+    ! Compute KGE-CSI and its components using the metrics module
+    call get_KGE_CSI(QOBS_AVAIL, QSIM_AVAIL, TRANSFO,                   & ! TRANSFO is applied to KGE_nonzero only
+                     work%run%stats%KGECSI, work%run%stats%CSI,        &
+                     work%run%stats%KGE_NZ, work%run%stats%F0, work%run%stats%ZERO_THR)
     
     ! Savethe metric chosen as objective function
     ! Note: the objective function uses the transformation (TRANSFO) requested in the control file
@@ -235,6 +245,7 @@ contains
       case ("RMSE");    work%run%stats%METRIC_VAL = get_RMSE(QOBS_AVAIL, QSIM_AVAIL, TRANSFO)
       case ("MAE");     work%run%stats%METRIC_VAL = get_MAE(QOBS_AVAIL, QSIM_AVAIL, TRANSFO)
       case ("KGECOMP"); work%run%stats%METRIC_VAL = work%run%stats%KGECOMP  ! uses fixed transformations 1 and -1
+      case ("KGECSI");  work%run%stats%METRIC_VAL = work%run%stats%KGECSI   ! TRANSFO applied to KGE_nonzero only
       case default
         message=trim(message)//'The requested metric is not available for calibration'
         ierr=10; return
@@ -254,6 +265,11 @@ contains
     PRINT *, 'KGE = ',          work%run%stats%KGE
     PRINT *, 'KGEP = ',         work%run%stats%KGEP
     PRINT *, 'KGECOMP = ',      work%run%stats%KGECOMP
+    PRINT *, 'KGECSI = ',       work%run%stats%KGECSI
+    PRINT *, 'CSI = ',          work%run%stats%CSI
+    PRINT *, 'KGE_NONZERO = ',  work%run%stats%KGE_NZ
+    PRINT *, 'F0 = ',           work%run%stats%F0
+    PRINT *, 'ZERO_THR = ',     work%run%stats%ZERO_THR
     PRINT *, 'MAE = ',          work%run%stats%MAE
     PRINT *, 'RAW_RMSE = ',     work%run%stats%RAW_RMSE
     PRINT *, 'LOG_RMSE = ',     work%run%stats%LOG_RMSE

@@ -2,7 +2,7 @@ module metrics
   use nrtype
   implicit none
   private
-  public :: get_KGE, get_KGEp, get_composite_KGE, get_NSE, get_MAE, get_RMSE
+  public :: get_KGE, get_KGEp, get_composite_KGE, get_KGE_CSI, get_NSE, get_MAE, get_RMSE
 
 contains
 
@@ -261,6 +261,69 @@ contains
     composite_kge = (kge1 + kge2) / 2.0_wp
 
   end function get_composite_KGE
+
+
+  ! Compute KGE-CSI: f0*CSI + (1-f0)*KGE_nonzero
+  !   tau         = zero-flow threshold, mean of the positive observed flows / 1000
+  !   f0          = fraction of observed time steps with obs <= tau
+  !   CSI         = critical success index for zero flow, H / (H + M + FA), 0 if H + M + FA = 0
+  !                 (H: obs <= tau and sim <= tau; M: obs > tau and sim <= tau; FA: obs <= tau and sim > tau)
+  !   KGE_nonzero = KGE on the time steps with obs > tau, after the transformation TRANSFO
+  ! tau, f0 and CSI always use the untransformed flows. If KGE_nonzero cannot be computed
+  ! (fewer than 10 non-zero observations, constant observed or simulated flow), it is
+  ! replaced by the penalty KGECSI_PENALTY so that SCE moves away from that parameter set.
+  ! Follows the Python implementation used for the CAMELS calibrations (external_sceua_camels_ind.py),
+  ! except that f0 is computed over the time steps with observations only.
+  subroutine get_KGE_CSI(obs, sim, transfo, kgecsi, csi, kge_nz, f0, tau)
+
+    real(wp), intent(in)          :: obs(:), sim(:)   ! observed and simulated streamflow (time steps with observations only)
+    character(len=*), intent(in)  :: transfo          ! transformation applied before computing KGE_nonzero
+    real(wp), intent(out)         :: kgecsi           ! KGE-CSI
+    real(wp), intent(out)         :: csi              ! critical success index for zero flow
+    real(wp), intent(out)         :: kge_nz           ! KGE on non-zero observed flows (-9999 if it cannot be computed)
+    real(wp), intent(out)         :: f0               ! fraction of zero-flow observations
+    real(wp), intent(out)         :: tau              ! zero-flow threshold
+    real(wp), parameter           :: KGECSI_PENALTY = -9999._wp  ! replaces KGE_nonzero when it cannot be computed
+    integer, parameter            :: MIN_NONZERO = 10            ! minimum number of non-zero observations for KGE_nonzero
+    logical, allocatable          :: obs_zero(:), sim_zero(:)    ! zero-flow flags
+    integer                       :: n, n_hit, n_miss, n_false, n_nz
+
+    n = size(obs)
+
+    ! zero-flow threshold and fraction of zero-flow observations
+    if (any(obs > 0._wp)) then
+      tau = max(sum(obs, mask=obs > 0._wp) / count(obs > 0._wp) / 1000._wp, 1.e-12_wp)
+    else
+      tau = 1.e-9_wp
+    end if
+    obs_zero = obs <= tau
+    sim_zero = sim <= tau
+    f0 = real(count(obs_zero), wp) / real(n, wp)
+
+    ! critical success index for zero flow
+    n_hit   = count(      obs_zero  .and.       sim_zero )
+    n_miss  = count((.not. obs_zero) .and.       sim_zero )
+    n_false = count(      obs_zero  .and. (.not. sim_zero))
+    if (n_hit + n_miss + n_false > 0) then
+      csi = real(n_hit, wp) / real(n_hit + n_miss + n_false, wp)
+    else
+      csi = 0._wp
+    end if
+
+    ! KGE on the non-zero observed flows
+    n_nz = count(.not. obs_zero)
+    kge_nz = KGECSI_PENALTY
+    if (n_nz >= MIN_NONZERO) then
+      if (standard_deviation(pack(obs, .not. obs_zero)) > 1.e-12_wp .and. &
+          standard_deviation(pack(sim, .not. obs_zero)) > 0._wp) then
+        kge_nz = get_KGE(pack(obs, .not. obs_zero), pack(sim, .not. obs_zero), transfo)
+        if (isnan(kge_nz) .or. kge_nz <= -1.0e6_wp) kge_nz = KGECSI_PENALTY  ! get_KGE returns -1.0e6 for NaN
+      end if
+    end if
+
+    kgecsi = f0 * csi + (1._wp - f0) * kge_nz
+
+  end subroutine get_KGE_CSI
 
 
 ! ---------------------------------------------------------------------------------------
