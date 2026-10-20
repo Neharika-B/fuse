@@ -20,12 +20,19 @@ contains
   subroutine apply_transformation(obs, sim, transfo)
   
     real(SP), intent(inout)      :: obs(:), sim(:)     ! observed and simulated streamflow time series
-    character(len=*), intent(in) :: transfo            ! transformation applied to streamflow time series
+    character(len=*), intent(in), optional :: transfo  ! transformation applied to streamflow time series
     real(SP)                     :: eps, transfo_val   ! epsilon value to avoid infinite number, power transformation as float
     integer                      :: i                  ! loop index
+    character(len=:), allocatable :: t                 ! transformation, "1" (none) if transfo is absent
+  
+    if (present(transfo)) then
+      t = transfo
+    else
+      t = "1"
+    end if
   
     ! log transformation
-    if (transfo == 'log') then
+    if (t == 'log') then
   
       eps = sum(obs) / (100 * size(obs)) ! use to avoid log(0)
     
@@ -35,7 +42,7 @@ contains
       end do
     
     ! box-cox transformation  
-    else if (transfo == 'boxcox') then
+    else if (t == 'boxcox') then
       do i = 1, size(obs)
         obs(i) = (obs(i)**0.25 - 1) / 0.25
         sim(i) = (sim(i)**0.25 - 1) / 0.25
@@ -43,7 +50,7 @@ contains
       
     ! power transformation
     else
-      transfo_val = char_to_float(transfo)
+      transfo_val = char_to_float(t)
     
       if (transfo_val < 0) then
     
@@ -89,6 +96,12 @@ contains
     
     n = count(.not. (isnan(obs) .or. isnan(sim)))
     
+    ! no valid days: return a very bad score
+    if (n <= 0) then
+      kge = -1.0e6_SP
+      return
+    end if
+    
     allocate(obs_t(n), sim_t(n))
     
     obs_t = pack(obs, .not. (isnan(obs) .or. isnan(sim)))
@@ -111,6 +124,9 @@ contains
     beta = m_sim / m_obs           ! bias
     
     kge = 1.0 - sqrt((r-1)**2 + (alpha-1)**2 + (beta-1)**2)
+
+    ! NaN score (e.g. constant simulation): return a very bad score
+    if (isnan(kge)) kge = -1.0e6_SP
   end function get_KGE
 
 
@@ -125,6 +141,12 @@ contains
     integer                                :: n                                                 ! length of the time series without NA values
     
     n = count(.not. (isnan(obs) .or. isnan(sim)))
+    
+    ! no valid days: return a very bad score
+    if (n <= 0) then
+      kgep = -1.0e6_SP
+      return
+    end if
     
     allocate(obs_t(n), sim_t(n))
     
@@ -148,6 +170,9 @@ contains
     beta = m_sim / m_obs                      ! bias
     
     kgep = 1.0 - sqrt((r-1)**2 + (alphap-1)**2 + (beta-1)**2)
+
+    ! NaN score (e.g. constant simulation): return a very bad score
+    if (isnan(kgep)) kgep = -1.0e6_SP
   end function get_KGEp
 
 
@@ -162,6 +187,12 @@ contains
     
     n = count(.not. (isnan(obs) .or. isnan(sim)))
     
+    ! no valid days: return a very bad score
+    if (n <= 0) then
+      nse = -1.0e6_SP
+      return
+    end if
+    
     allocate(obs_t(n), sim_t(n))
     
     obs_t = pack(obs, .not. (isnan(obs) .or. isnan(sim)))
@@ -170,6 +201,9 @@ contains
     call apply_transformation(obs_t, sim_t, transfo)
     
     nse = 1 - (sum((obs_t - sim_t)**2) / sum((obs_t - (sum(obs_t)/n))**2))
+
+    ! NaN score (e.g. constant simulation): return a very bad score
+    if (isnan(nse)) nse = -1.0e6_SP
     
   end function get_NSE
 
@@ -186,6 +220,12 @@ contains
         
     n = count(.not. (isnan(obs) .or. isnan(sim)))
     
+    ! no valid days: return a very bad score
+    if (n <= 0) then
+      mae = 1.0e6_SP
+      return
+    end if
+    
     allocate(obs_t(n), sim_t(n))
     
     obs_t = pack(obs, .not. (isnan(obs) .or. isnan(sim)))
@@ -194,6 +234,9 @@ contains
     call apply_transformation(obs_t, sim_t, transfo)
     
     mae = sum(abs(obs_t - sim_t)) / n
+
+    ! NaN score (e.g. constant simulation): return a very bad score
+    if (isnan(mae)) mae = 1.0e6_SP
     
   end function get_MAE
 
@@ -209,6 +252,12 @@ contains
     
     n = count(.not. (isnan(obs) .or. isnan(sim)))
     
+    ! no valid days: return a very bad score
+    if (n <= 0) then
+      rmse = 1.0e6_SP
+      return
+    end if
+    
     allocate(obs_t(n), sim_t(n))
     
     obs_t = pack(obs, .not. (isnan(obs) .or. isnan(sim)))
@@ -217,6 +266,9 @@ contains
     call apply_transformation(obs_t, sim_t, transfo)
     
     rmse = sqrt(sum((obs_t - sim_t)**2) / n)
+
+    ! NaN score (e.g. constant simulation): return a very bad score
+    if (isnan(rmse)) rmse = 1.0e6_SP
     
   end function get_RMSE
 
@@ -236,6 +288,9 @@ contains
     
     ! Compute composite KGE
     composite_kge = (kge1 + kge2) / 2.0
+
+    ! NaN score (e.g. constant simulation): return a very bad score
+    if (isnan(composite_kge)) composite_kge = -1.0e6_SP
     
   end function get_composite_KGE
 
@@ -273,6 +328,10 @@ contains
     integer              :: n
     
     n = size(x)
+    if (n < 2) then
+      sd = 0.0_SP
+      return
+    end if
     mean_x = sum(x) / n
     sd = sqrt(sum((x - mean_x)**2) / (n - 1))
   end function standard_deviation
@@ -285,6 +344,10 @@ contains
     integer              :: n, i
     
     n = size(x)
+    if (n < 2) then
+      r = 0.0_SP
+      return
+    end if
     mean_x = sum(x) / n
     mean_y = sum(y) / n
     sd_x = standard_deviation(x)
